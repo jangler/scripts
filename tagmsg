@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'optparse'
+
+HELP = <<END
+
+Print the message associated with the git tag named <tag> in the git repository
+at <dir>. If <dir> is omitted, the current working directory is used.
+
+END
+
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: tagmsg [<dir>] <tag>'
+
+  opts.separator HELP
+  opts.separator 'Options:'
+
+  opts.on('-h', '--help', 'Print this message and exit') do
+    puts opts
+    exit
+  end
+end
+
+begin
+  parser.parse!
+rescue OptionParser::ParseError => err
+  warn(err)
+  exit(1)
+end
+
+unless [1, 2].include?(ARGV.size)
+  warn(parser)
+  exit(1)
+end
+tag = ARGV[-1]
+
+if ARGV.size == 2
+  begin
+    FileUtils.cd(ARGV[0])
+  rescue => err
+    warn(err)
+    exit(1)
+  end
+end
+
+puts `git show #{tag} | tail -n +5`.split(/\ncommit/)[0]
