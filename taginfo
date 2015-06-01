@@ -5,16 +5,21 @@ require 'optparse'
 
 HELP = <<END
 
-Print the message associated with the git tag named <tag> in the git repository
+Print information associated with the git tag named <tag> in the git repository
 at <dir>. If <dir> is omitted, the current working directory is used.
 
+Options:
 END
 
+info = []
+
 parser = OptionParser.new do |opts|
-  opts.banner = 'Usage: tagmsg [<dir>] <tag>'
+  opts.banner = 'Usage: taginfo [<option> ...] [<dir>] <tag>'
 
   opts.separator HELP
-  opts.separator 'Options:'
+
+  opts.on('-d', '--date', 'Print date of tagged commit') { info << :date }
+  opts.on('-m', '--message', 'Print most recent tag message') { info << :msg }
 
   opts.on('-h', '--help', 'Print this message and exit') do
     puts opts
@@ -44,4 +49,14 @@ if ARGV.size == 2
   end
 end
 
-puts `git show #{tag} | tail -n +5`.split(/\n(tag|commit)/)[0]
+show = `git show #{tag} | tail -n +5`
+
+output = info.map do |type|
+  if type == :date
+    show.split(/\ncommit/)[1][/Date:\s+(.+?)$/, 1]
+  elsif type == :msg
+    show.split(/\n(tag|commit)/)[0]
+  end
+end.join("\n\n")
+
+puts output

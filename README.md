@@ -2,4 +2,4 @@ Scripts
 -------
 Miscellaneous utility scripts.
 
-- `tagmsg` - print a git tag message
+- `taginfo` - print information about a git tag
