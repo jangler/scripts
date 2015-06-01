@@ -44,4 +44,4 @@ if ARGV.size == 2
   end
 end
 
-puts `git show #{tag} | tail -n +5`.split(/\ncommit/)[0]
+puts `git show #{tag} | tail -n +5`.split(/\n(tag|commit)/)[0]
