@@ -1,2 +1,8 @@
 #!/usr/bin/env bash
+
+if [[ -z `which xclip 2>/dev/null` ]]; then
+	>&2 echo "xsync: xclip not installed"
+	exit 1
+fi
+
 xclip -o | xclip -selection clipboard
