@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [[ $# == 0 ]] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+	>&2 echo "Usage: wri <target> ..."
+	if [[ $# == 0 ]]; then
+		exit 1
+	fi
+	exit
+fi
+
+if [[ -z $BROWSER ]]; then
+	>&2 echo "wri: \$BROWSER not set"
+	exit 1
+fi
+
+for PROGRAM in ri markdown $BROWSER; do
+	if [[ -z `which $PROGRAM 2>/dev/null` ]]; then
+		>&2 echo "wri: $PROGRAM not installed"
+		exit 1
+	fi
+done
+
+FILE=/tmp/wri.html
+ri -f markdown "$@" | markdown > $FILE
+($BROWSER $FILE 2>/dev/null; rm -f $FILE) &
