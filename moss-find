@@ -15,7 +15,7 @@ fi
 
 COMMAND=`echo "$@" | cut -d ' ' -f 1`
 QUERY=`echo "$@" | cut -d ' ' -f 2- | tr ' ' _`
-RESULTS=`find ~/music -name "*$QUERY*"`
+RESULTS=`find ~/music | grep "$QUERY" | grep \\\\. | sort`
 if [[ "$RESULTS" ]]; then
 	moss "$COMMAND" "$RESULTS"
 else
