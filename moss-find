@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-if [[ $# -lt 2 ]] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
-	>&2 echo "Usage: moss-find <command> <string> ..."
-	if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+if [[ $# -lt 2 ]] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
+	echo 'Usage: moss-find <command> <string> ...' >&2
+	if [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
 		exit
 	fi
 	exit 1
 fi
 
 if [[ -z `which moss 2>/dev/null` ]]; then
-	>&2 echo "moss-find: moss not installed"
+	echo 'moss-find: moss not installed' >&2
 	exit 1
 fi
 
@@ -19,6 +19,6 @@ RESULTS=`find ~/music | grep "$QUERY" | grep \\\\. | sort | tr '\\n' ' '`
 if [[ "$RESULTS" ]]; then
 	moss "$COMMAND" $RESULTS
 else
-	>&2 echo "No results for: $QUERY"
+	echo "No results for: $QUERY" >&2
 	exit 1
 fi

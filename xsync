@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ -z `which xclip 2>/dev/null` ]]; then
-	>&2 echo "xsync: xclip not installed"
+	echo 'xsync: xclip not installed' >&2
 	exit 1
 fi
 

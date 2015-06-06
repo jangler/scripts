@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-tmux rename-window `basename \`pwd\``
+tmux rename-window $(basename `pwd`)
