@@ -2,10 +2,7 @@
 
 if [[ $# == 0 ]] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
 	echo 'Usage: wri <target> ...' >&2
-	if [[ $# == 0 ]]; then
-		exit 1
-	fi
-	exit
+	[[ $# != 0 ]]; exit $?
 fi
 
 if [[ -z "$BROWSER" ]]; then
@@ -13,13 +10,13 @@ if [[ -z "$BROWSER" ]]; then
 	exit 1
 fi
 
-for PROGRAM in ri markdown "$BROWSER"; do
-	if [[ -z `which "$PROGRAM" 2>/dev/null` ]]; then
-		echo "wri: $PROGRAM not installed" >&2
+for program in ri markdown "$BROWSER"; do
+	if [[ -z `which "$program" 2>/dev/null` ]]; then
+		echo "wri: $program not installed" >&2
 		exit 1
 	fi
 done
 
-FILE=/tmp/wri.html
-ri -f markdown "$@" | markdown > $FILE
-"$BROWSER" "file://$FILE" 2>/dev/null &
+file=/tmp/wri.html
+ri -f markdown "$@" | markdown > $file
+"$BROWSER" "file://$file" 2>/dev/null &

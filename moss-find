@@ -2,10 +2,7 @@
 
 if [[ $# -lt 2 ]] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
 	echo 'Usage: moss-find <command> <string> ...' >&2
-	if [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
-		exit
-	fi
-	exit 1
+	[[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; exit $?
 fi
 
 if [[ -z `which moss 2>/dev/null` ]]; then
@@ -13,12 +10,12 @@ if [[ -z `which moss 2>/dev/null` ]]; then
 	exit 1
 fi
 
-COMMAND=`echo "$@" | cut -d ' ' -f 1`
-QUERY=`echo "$@" | cut -d ' ' -f 2- | tr ' ' _`
-RESULTS=`find ~/music | grep "$QUERY" | grep \\\\. | sort | tr '\\n' ' '`
-if [[ "$RESULTS" ]]; then
-	moss "$COMMAND" $RESULTS
+cmd=`echo "$@" | cut -d ' ' -f 1`
+query=`echo "$@" | cut -d ' ' -f 2- | tr ' ' _`
+results=`find ~/music | grep "$query" | grep \\\\. | sort | tr '\\n' ' '`
+if [[ "$results" ]]; then
+	moss "$cmd" $results
 else
-	echo "No results for: $QUERY" >&2
+	echo "No results for: $query" >&2
 	exit 1
 fi
