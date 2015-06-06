@@ -15,9 +15,9 @@ fi
 
 COMMAND=`echo "$@" | cut -d ' ' -f 1`
 QUERY=`echo "$@" | cut -d ' ' -f 2- | tr ' ' _`
-RESULTS=`find ~/music | grep "$QUERY" | grep \\\\. | sort`
+RESULTS=`find ~/music | grep "$QUERY" | grep \\\\. | sort | tr '\\n' ' '`
 if [[ "$RESULTS" ]]; then
-	moss "$COMMAND" "$RESULTS"
+	moss "$COMMAND" $RESULTS
 else
 	>&2 echo "No results for: $QUERY"
 	exit 1
