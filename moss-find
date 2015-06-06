@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if [[ $# -lt 2 ]] || [[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; then
+if [[ $# -lt 2 || "$1" == '--help' || "$1" == '-h' ]]; then
 	echo 'Usage: moss-find <command> <string> ...' >&2
-	[[ "$1" == '--help' ]] || [[ "$1" == '-h' ]]; exit $?
+	[[ "$1" == '--help' || "$1" == '-h' ]]; exit $?
 fi
 
 if [[ -z `which moss 2>/dev/null` ]]; then
