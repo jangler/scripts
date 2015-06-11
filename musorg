@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+root=~/music
+
+if [[ $# == 0 || "$1" == '--help' || "$1" == '-h' ]]; then
+	echo 'Usage: musorg <file> ...' >&2
+	[[ $# != 0 ]]; exit
+fi
+
+if [[ -z `which taffy 2>/dev/null` ]]; then
+	echo 'musorg: taffy not installed' >&2
+	exit 1
+fi
+
+gettag () {
+	echo "$1" | grep "^$2:" | sed "s/^$2: \+\(.\+\)$/\1/" | \
+		tr 'A-Z [:punct:]' a-z_-
+}
+
+status=0
+
+for arg; do
+	tags=$(taffy "$arg" 2>/dev/null)
+	if [[ $? != 0 ]]; then
+		echo "$arg: unsupported file format"
+		status=1
+		continue
+	fi
+	artist=$(gettag "$tags" artist)
+	album=$(gettag "$tags" album)
+	title=$(gettag "$tags" title)
+	track=$(printf %02d $(gettag "$tags" track))
+	if [[ "$artist" && "$album" && "$title" && "$track" ]]; then
+		mkdir -p "$root/$artist/$album"
+		ext=$(echo "$arg" | grep -o \\..\\+$)
+		mv -n "$arg" "$root/$artist/$album/${track}_$title$ext" 2>/dev/null
+	else
+		echo "$arg: not enough metadata" >&2
+		status=1
+	fi
+done
+
+exit $status
