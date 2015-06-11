@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
+if [[ $# -gt 1 || ($# == 1 && "$1" != '-r') ]]; then
+	echo 'Usage: xsync [-r]' >&2
+	[[ "$1" == '--help' || "$1" == '-h' ]]; exit
+fi
+
 if [[ -z `which xclip 2>/dev/null` ]]; then
 	echo 'xsync: xclip not installed' >&2
 	exit 1
 fi
 
-xclip -o | xclip -selection clipboard
+if [[ "$1" == '-r' ]]; then
+	xclip -o | xclip -selection clipboard
+else
+	xclip -o -selection clipboard | xclip
+fi
