@@ -32,7 +32,7 @@ for arg; do
 	track=$(printf %02d $(gettag "$tags" track))
 	if [[ "$artist" && "$album" && "$title" && "$track" ]]; then
 		mkdir -p "$root/$artist/$album"
-		ext=$(echo "$arg" | grep -o \\..\\+$)
+		ext=$(echo "$arg" | sed 's/.\+\(\..\+$\)/\1/')
 		mv -n "$arg" "$root/$artist/$album/${track}_$title$ext" 2>/dev/null
 	else
 		echo "$arg: not enough metadata" >&2
