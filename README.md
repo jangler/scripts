@@ -5,6 +5,7 @@ Miscellaneous utility scripts.
   arguments given by find
 - `musorg` - organize audio files based on metadata using
   [taffy](https://github.com/jangler/taffy)
+- `prune` - remove empty directories from a directory tree
 - `taginfo` - print information about a git tag
 - `wdname` - rename tmux window to basename of working directory
 - `wri` - view formatted ri output in browser using markdown
