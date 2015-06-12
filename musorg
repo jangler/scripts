@@ -14,7 +14,7 @@ fi
 
 gettag () {
 	echo "$1" | grep "^$2:" | sed "s/^$2: \+\(.\+\)$/\1/" | \
-		tr 'A-Z [:punct:]' a-z_-
+		tr -cd '[:alnum:] _-' | tr 'A-Z ' a-z_
 }
 
 status=0
