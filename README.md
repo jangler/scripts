@@ -1,6 +1,7 @@
 Miscellaneous utility scripts.
 
 - `explode` - explode directories
+- `finances` - tally ledger information from a JSON file
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
 - `musorg` - organize audio files based on metadata using

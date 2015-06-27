@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+import argparse
+import collections
+import json
+import sys
+
+
+DESCRIPTION = "Analyze financial information from a JSON file."
+
+
+def die(msg):
+    sys.stderr.write(str(msg) + '\n')
+    exit(1)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('filename', metavar='<file>', type=str,
+                        help='path of the JSON file to read')
+    parser.add_argument('--from', metavar='<date>', type=int,
+                        help='earliest date to include')
+    parser.add_argument('--to', metavar='<date>', type=int,
+                        help='latest date to include')
+    return parser.parse_args()
+
+
+def read_json(filename):
+    try:
+        file = open(filename)
+    except Exception as ex:
+        die('Could not open file:' + str(ex))
+    try:
+        data = json.load(file)
+    except Exception as ex:
+        die('Invalid JSON file: ' + str(ex))
+    file.close()
+    return data
+
+
+def main():
+    args = parse_args()
+    data = read_json(args.filename)
+    args.from_ = args.__dict__['from']  # work-around for reserved word
+    categories = collections.defaultdict(lambda: 0)
+    for day, entries in data.items():
+        if args.from_ and int(day) < args.from_:
+            continue
+        if args.to and int(day) > args.to:
+            continue
+        for k, v in entries.items():
+            categories[k] += int(v)
+    max_k_len = max(len(k) for k in categories.keys())
+    max_v_len = max(len(str(v)) for v in categories.values())
+    categories = sorted(categories.items(), key=lambda t: abs(t[1]))
+    for k, v in categories:
+        print(k.ljust(max_k_len + 1), str(v).rjust(max_v_len))
+    print('-' * (max_k_len + max_v_len + 2))
+    total = sum(v for k, v in categories)
+    print('total'.ljust(max_k_len + 1), total)
+
+if __name__ == '__main__':
+    main()
