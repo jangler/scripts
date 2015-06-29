@@ -22,6 +22,10 @@ def parse_args():
                         help='earliest date to include')
     parser.add_argument('--to', metavar='<date>', type=int,
                         help='latest date to include')
+    parser.add_argument('-e', '--expenses', action='store_true',
+                        help='show only expenses')
+    parser.add_argument('-i', '--income', action='store_true',
+                        help='show only income')
     return parser.parse_args()
 
 
@@ -50,9 +54,13 @@ def main():
             continue
         for k, v in entries.items():
             categories[k] += int(v)
-    max_k_len = max(len(k) for k in categories.keys())
-    max_v_len = max(len(str(v)) for v in categories.values())
     categories = sorted(categories.items(), key=lambda t: abs(t[1]))
+    if args.expenses:
+        categories = [(k, v) for k, v in categories if v < 0]
+    if args.income:
+        categories = [(k, v) for k, v in categories if v > 0]
+    max_k_len = max(len(k) for k, v in categories)
+    max_v_len = max(len(str(v)) for k, v in categories)
     for k, v in categories:
         print(k.ljust(max_k_len + 1), str(v).rjust(max_v_len))
     print('-' * (max_k_len + max_v_len + 2))
