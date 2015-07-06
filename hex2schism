@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+DESCRIPTION = 'Convert a 24-bit hex color to a 3-tuple for Schism Tracker.'
+
+
+def color(s):
+    return int(s, 16)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('color', metavar='<color>', type=color,
+                        help='24-bit hex color to convert; e.g. 7f7f7f')
+    args = parser.parse_args()
+    r = ((args.color >> 16) & 0xff) // 4
+    g = ((args.color >> 8) & 0xff) // 4
+    b = (args.color & 0xff) // 4
+    print(r, g, b)
+
+
+if __name__ == '__main__':
+    main()
