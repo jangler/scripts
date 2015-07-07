@@ -65,7 +65,7 @@ def main():
         print(k.ljust(max_k_len + 1), str(v).rjust(max_v_len))
     print('-' * (max_k_len + max_v_len + 2))
     total = sum(v for k, v in categories)
-    print('total'.ljust(max_k_len + 1), total)
+    print('total'.ljust(max_k_len + 1), str(total).rjust(max_v_len))
 
 if __name__ == '__main__':
     main()
