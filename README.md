@@ -1,4 +1,5 @@
-Miscellaneous utility scripts.
+Miscellaneous utility scripts. See
+[tools](https://github.com/jangler/tools) for compiled utilities.
 
 - `explode` - explode directories
 - `finances` - tally ledger information from a JSON file
