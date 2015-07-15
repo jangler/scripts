@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+if [[ $# -ne 4 || "$1" == '--help' || "$1" == '-h' ]]; then
+	echo 'Usage: gifopt <kilobytes> <colors> <infile> <outfile>' >&2
+	[[ "$1" == '--help' || "$1" == '-h' ]]; exit
+fi
+
+for prog in gifdrop gifsicle; do
+	if [[ -z `which $prog 2>/dev/null` ]]; then
+		echo "gifopt: $prog not installed" >&2
+		exit 1
+	fi
+done
+
+kilobytes=$1
+colors=$2
+infile="$3"
+outfile="$4"
+tmpfile="/tmp/$(basename "$outfile")"
+
+for skip in `seq 100`; do
+	gifdrop -skip $skip "$infile" "$tmpfile" >/dev/null
+	if [[ $? -ne 0 ]]; then exit 1; fi
+
+	gifsicle -O3 --method blend-diversity -k $colors -f --careful \
+		< "$tmpfile" > "$outfile"
+	if [[ $? -ne 0 ]]; then rm "$tmpfile"; exit 1; fi
+
+	size=$(du -k "$outfile" | cut -f 1)
+	echo "skip=$skip; size=$size"
+	if [[ size -lt $kilobytes ]]; then break; fi
+done
+
+rm "$tmpfile"

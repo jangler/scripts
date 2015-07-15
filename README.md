@@ -3,6 +3,8 @@ Miscellaneous utility scripts. See
 
 - `explode` - explode directories
 - `finances` - tally ledger information from a JSON file
+- `gifopt` - optimize the size of a GIF using
+  [gifdrop](https://github.com/jangler/tools) and gifsicle
 - `hex2schism` - convert a 24-bit hex color to a 3-tuple for schismtracker
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
