@@ -10,7 +10,9 @@ Miscellaneous utility scripts. See
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
 - `musorg` - organize audio files based on metadata using
-  [taffy](https://github.com/jangler/taffy)
+  [taffy](https://github.com/jangler/taffy) and `nicename`
+- `nicename` - translate arguments or lines to ASCII letters, digits, and
+  hyphens
 - `prune` - remove empty directories from a directory tree
 - `taginfo` - print information about a git tag
 - `wdname` - rename tmux window to basename of working directory

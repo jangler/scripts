@@ -13,8 +13,7 @@ if [[ -z `which taffy 2>/dev/null` ]]; then
 fi
 
 gettag () {
-	echo "$1" | grep "^$2:" | sed "s/^$2: \+\(.\+\)$/\1/" | \
-		tr -cd '[:alnum:] _-' | tr 'A-Z ' a-z_
+	echo "$1" | grep "^$2:" | sed "s/^$2: \+\(.\+\)$/\1/" | nicename
 }
 
 status=0
