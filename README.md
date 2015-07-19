@@ -1,4 +1,4 @@
-Miscellaneous utility scripts. See
+Miscellaneous public domain utility scripts. See
 [tools](https://github.com/jangler/tools) for compiled utilities.
 
 - `explode` - explode directories
