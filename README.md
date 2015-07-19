@@ -6,6 +6,7 @@ Miscellaneous utility scripts. See
 - `gifopt` - optimize the size of a GIF using
   [gifdrop](https://github.com/jangler/tools) and gifsicle
 - `hex2schism` - convert a 24-bit hex color to a 3-tuple for schismtracker
+- `jpegopt` - optimize the size of a JPEG using ImageMagick
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
 - `musorg` - organize audio files based on metadata using

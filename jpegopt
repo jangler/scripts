@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+if [[ $# -ne 3 || "$1" == '--help' || "$1" == '-h' ]]; then
+	echo 'Usage: jpegopt <kilobytes> <infile> <outfile>' >&2
+	[[ "$1" == '--help' || "$1" == '-h' ]]; exit
+fi
+
+if [[ -z `which convert 2>/dev/null` ]]; then
+	echo "jpegopt: imagemagick not installed" >&2
+	exit 1
+fi
+
+kilobytes=$1
+infile="$2"
+outfile="$3"
+
+for q in `seq 100 -2 1`; do
+	convert "$infile" -quality $q "$outfile"
+	if [[ $? -ne 0 ]]; then exit 1; fi
+
+	size=$(du -k "$outfile" | cut -f 1)
+	echo "quality=$q; size=$size"
+	if [[ size -lt $kilobytes ]]; then break; fi
+done
