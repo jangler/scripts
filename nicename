@@ -6,10 +6,8 @@ if [[ $1 = '-h' || $1 = '--help' ]]; then
 fi
 
 niceecho () {
-	# this only covers the most common diacritics -- more to be added
-	echo "$1" | tr ÀÁÂÃÄÅàáâãäå a | tr Çç c | tr ÈÉÊËèéêë e | tr ÌÍÎÏìíîï i | \
-	tr Ññ n | tr ÒÓÔÕÖØòóôõöø o | tr ÙÚÛÜùúûü u | \
-	tr -c [:alnum:]\\n - | tr [:upper:] [:lower:] | tr -s -
+	echo "$1" | tr -d "'\")]}>?!." | tr -c [:alnum:]\\n - | \
+	tr [:upper:] [:lower:] | tr -s -
 }
 
 if [[ $# -gt 0 ]]; then
