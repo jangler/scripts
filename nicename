@@ -6,7 +6,7 @@ if [[ $1 = '-h' || $1 = '--help' ]]; then
 fi
 
 niceecho () {
-	echo "$1" | tr -d "'\")]}>?!." | tr -c [:alnum:]\\n - | \
+	echo "$1" | tr -d "'\")]}>?!" | tr -c [:alnum:]\\n. - | \
 	tr [:upper:] [:lower:] | tr -s -
 }
 
