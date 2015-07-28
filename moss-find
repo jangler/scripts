@@ -11,7 +11,7 @@ if [[ -z `which moss 2>/dev/null` ]]; then
 fi
 
 cmd=`echo "$@" | cut -d ' ' -f 1`
-query=`echo "$@" | cut -d ' ' -f 2- | tr ' ' _`
+query=`echo "$@" | cut -d ' ' -f 2- | tr ' ' -`
 results=`find ~/music | grep "$query" | grep \\\\. | sort | tr '\\n' ' '`
 if [[ "$results" ]]; then
 	moss "$cmd" $results
