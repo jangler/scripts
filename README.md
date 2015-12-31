@@ -10,6 +10,9 @@ Miscellaneous public domain utility scripts. See
 - `jsonfmt` - pretty-print JSON
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
+- `mp3mod` - convert tracker modules in a folder to volume-equalized MP3 using
+  schismtracker,
+  [loudness-scanner](https://github.com/jiixyj/loudness-scanner), and sox
 - `musorg` - organize audio files based on metadata using
   [taffy](https://github.com/jangler/taffy) and `nicename`
 - `nicename` - translate arguments or lines to ASCII letters, digits, and

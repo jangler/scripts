@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+IFS='
+'
+LUFS=12.0
+
+for f in $(ls *.s3m *.S3M *.xm *.XM *.mod *.MOD *.it *.IT 2>/dev/null); do
+	echo "Diskwriting $f.wav..."
+	schismtracker "$f" --diskwrite="$f.wav" >/dev/null
+done
+
+echo Calculating mean loudness...
+meanlufs=$(loudness scan *.wav 2>/dev/null | tail -n 1 | cut -c 1-5)
+
+for f in *.wav; do
+	echo "Encoding $f.mp3..."
+	lufs=$(loudness scan "$f" 2>/dev/null | tail -n 1 | cut -c 1-5)
+	delta=$(echo $meanlufs - $lufs | bc)
+	if [ $(echo $delta | grep -) ]; then
+		sox "$f" -C 320 "$f.mp3" vol $delta dB
+	else
+		sox "$f" -C 320 "$f.mp3" vol $delta dB 0.05
+	fi
+done
+
+echo Cleaning up...
+rm *.wav
+for ext in s3m S3M xm XM mod MOD it IT; do
+	rename .${ext}.wav '' *.mp3
+done
+
+exit 0
