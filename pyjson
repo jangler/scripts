@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import argparse
+import code
+import json
+import os.path
+import sys
+
+
+DESCRIPTION = 'Enter a Python REPL with a JSON file loaded as local ' + \
+              'variable "obj".'
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('-u', '--unpack', action='store_true',
+                        help='unpack a top-level dict into locals')
+    parser.add_argument('file', type=str, help='JSON file to read')
+    return parser.parse_args()
+
+
+def die(msg):
+    sys.stderr.write('%s: %s\n' % (os.path.basename(sys.argv[0]), msg))
+    exit(1)
+
+
+def load(path):
+    try:
+        fp = open(path, 'r')
+    except Exception as ex:
+        die('%s: %s' % (path, ex))
+    try:
+        obj = json.load(fp)
+    except Exception as ex:
+        fp.close()
+        die('%s: %s' % (path, ex))
+    fp.close()
+    return obj
+
+
+def main():
+    args = parse_args()
+    obj = load(args.file)
+    local = {'obj': obj}
+    if args.unpack and isinstance(obj, dict):
+        local.update(obj)
+    banner = '%s: %s' % (args.file, ', '.join(sorted(local)))
+    code.interact(banner=banner, local=local)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
