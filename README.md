@@ -15,7 +15,7 @@ Miscellaneous public domain utility scripts. See
 - `nicename` - translate arguments or lines to ASCII letters, digits, and
   hyphens
 - `prune` - remove empty directories from a directory tree
-- `pyjson` - load a JSON file and enter a Python REPL
+- `pyjson` - load JSON files and enter a Python REPL
 - `taginfo` - print information about a git tag
 - `wdname` - rename tmux window to basename of working directory
 - `wri` - view formatted ri output in browser using markdown

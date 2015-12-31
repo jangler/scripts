@@ -7,15 +7,15 @@ import os.path
 import sys
 
 
-DESCRIPTION = 'Enter a Python REPL with a JSON file loaded as local ' + \
-              'variable "obj".'
+DESCRIPTION = 'Enter a Python REPL with JSON files loaded as local variables.'
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('-u', '--unpack', action='store_true',
-                        help='unpack a top-level dict into locals')
-    parser.add_argument('file', type=str, help='JSON file to read')
+                        help='unpack top-level dicts into locals')
+    parser.add_argument('files', metavar='file', type=str, nargs='+',
+                        help='JSON files to load')
     return parser.parse_args()
 
 
@@ -40,11 +40,13 @@ def load(path):
 
 def main():
     args = parse_args()
-    obj = load(args.file)
-    local = {'obj': obj}
-    if args.unpack and isinstance(obj, dict):
-        local.update(obj)
-    banner = '%s: %s' % (args.file, ', '.join(sorted(local)))
+    local = {}
+    for path in args.files:
+        obj = load(path)
+        local[os.path.splitext(os.path.basename(path))[0]] = obj
+        if args.unpack and isinstance(obj, dict):
+            local.update(obj)
+    banner = 'locals: %s' % ', '.join(sorted(local))
     code.interact(banner=banner, local=local)
 
 
