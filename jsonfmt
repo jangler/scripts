@@ -12,11 +12,13 @@ DESCRIPTION = 'Pretty-print JSON. If no file arguments are given, JSON is ' + \
 
 def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('files', metavar='file', type=str, nargs='*',
-                        help='files to reformat in-place')
+    parser.add_argument('-c', '--check', action='store_true',
+                        help='no-op, only ensure that JSON can be loaded')
     parser.add_argument('-i', '--indent', metavar='spaces', type=int,
                         default=2,
-                        help='spaces per indentation level (default: 2)')
+                        help='spaces to write per indent (default: 2)')
+    parser.add_argument('files', metavar='file', type=str, nargs='*',
+                        help='files to reformat in-place')
     return parser.parse_args()
 
 
@@ -25,7 +27,7 @@ def die(msg):
     exit(1)
 
 
-def format_file(path, indent):
+def format_file(path, indent, check):
     try:
         fp = open(path, 'r')
     except Exception as ex:
@@ -36,6 +38,8 @@ def format_file(path, indent):
         fp.close()
         die('%s: %s' % (path, ex))
     fp.close()
+    if check:
+        return
     try:
         fp = open(path, 'w')
     except Exception as ex:
@@ -49,12 +53,14 @@ def format_file(path, indent):
     fp.close()
 
 
-def format_stdin(indent):
+def format_stdin(indent, check):
     s = sys.stdin.read()
     try:
         obj = json.loads(s)
     except Exception as ex:
         die(ex)
+    if check:
+        return
     json.dump(obj, sys.stdout, ensure_ascii=False, indent=indent,
               sort_keys=True)
     sys.stdout.write('\n')
@@ -64,9 +70,9 @@ def main():
     args = parse_args()
     if args.files:
         for path in args.files:
-            format_file(path, args.indent)
+            format_file(path, args.indent, args.check)
     else:
-        format_stdin(args.indent)
+        format_stdin(args.indent, args.check)
 
 
 if __name__ == '__main__':
