@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+from string import printable
+from sys import argv, stderr, stdin
+import unicodedata
+
+
+DESCRIPTION = 'Filter arguments or standard input such that they do not ' + \
+              'need escaping in a shell and contain no characters that ' + \
+              'are not present on a standard en-US keyboard, while ' + \
+              'staying as close to the original text as possible.'
+
+CYRILLIC_TO_LATIN = {
+    'A': 'A',
+    'BE': 'B',
+    'VE': 'V',
+    'GHE': 'G',
+    'DE': 'D',
+    'IE': 'E',
+    'ZHE': 'Z',
+    'ZE': 'Z',
+    'I': 'J',
+    'SHORT': 'J',
+    'KA': 'K',
+    'EL': 'L',
+    'EM': 'M',
+    'EN': 'N',
+    'O': 'O',
+    'PE': 'P',
+    'ER': 'R',
+    'ES': 'S',
+    'TE': 'T',
+    'U': 'U',
+    'EF': 'F',
+    'HA': 'X',
+    'TSE': 'C',
+    'CHE': 'C',
+    'SHA': 'S',
+    'SHCHA': 'Sc',
+    'HARD': '',
+    'YERU': 'Y',
+    'SOFT': 'J',
+    'E': 'E',
+    'YU': 'Ju',
+    'YA': 'Ja',
+}
+
+GREEK_TO_LATIN = {
+    'ALPHA': 'A',
+    'BETA': 'V',
+    'GAMMA': 'G',
+    'DELTA': 'D',
+    'ZETA': 'Z',
+    'EPSILON': 'E',
+    'ETA': 'I',
+    'THETA': 'Th',
+    'IOTA': 'I',
+    'KAPPA': 'K',
+    'LAMDA': 'L',
+    'MU': 'M',
+    'NU': 'N',
+    'XI': 'X',
+    'OMICRON': 'O',
+    'PI': 'P',
+    'RHO': 'R',
+    'SIGMA': 'S',
+    'TAU': 'T',
+    'UPSILON': 'Y',
+    'PHI': 'F',
+    'CHI': 'Ch',
+    'PSI': 'Ps',
+    'OMEGA': 'O'
+}
+
+
+exit_status = 0
+
+
+def parse_args():
+    parser = ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('args', metavar='arg', type=str, nargs='*',
+                        help='arguments to filter (read stdin if none given)')
+    parser.add_argument('-c', '--char', metavar='str', type=str, default='-',
+                        help='replacement for special characters (default: -)')
+    parser.add_argument('-s', '--small', action='store_true',
+                        help='replace capital letters with small letters')
+    return parser.parse_args()
+
+
+def char_filter(c, replace_char):
+    if c in printable:
+        return replace_char if c in '`!$&*()\\|;\'"<>/ \t\n\r' else c
+    else:
+        name = unicodedata.name(c, replace_char)
+        if name.startswith('COMBINING '):
+            return ''
+        if name.startswith('CIRCLED '):
+            name = name[8:]
+        name.replace('FINAL ', '')
+        if name.startswith('LATIN SMALL LETTER '):
+            return name[19].lower()
+        if name.startswith('LATIN CAPITAL LETTER '):
+            return name[21]
+        if name.startswith('HIRAGANA LETTER '):
+            return name.split()[3].lower()
+        if name.startswith('KATAKANA LETTER '):
+            return name.split()[3].lower()
+        if name.startswith('CYRILLIC SMALL LETTER '):
+            return CYRILLIC_TO_LATIN.get(name.split()[3], replace_char).lower()
+        if name.startswith('CYRILLIC CAPITAL LETTER '):
+            return CYRILLIC_TO_LATIN.get(name.split()[3], replace_char)
+        if name.startswith('GREEK SMALL LETTER '):
+            return GREEK_TO_LATIN.get(name.split()[3], replace_char).lower()
+        if name.startswith('GREEK CAPITAL LETTER '):
+            return GREEK_TO_LATIN.get(name.split()[3], '')
+        return replace_char
+
+
+def name_filter(s, replace_char, small):
+    original_s = s
+    s = unicodedata.normalize('NFKC', s)
+    s = ''.join(char_filter(c, replace_char) for c in s)
+    if small:
+        s = s.lower()
+    while s.startswith('-') or s.startswith('.'):
+        s = s[1:]
+    while len(s) > 1 and s.endswith(replace_char):
+        s = s[:-1]
+    i = 0
+    while i < len(s) - 1:
+        if s[i] == replace_char and s[i + 1] == replace_char:
+            s = s[:i] + s[i+1:]
+        else:
+            i += 1
+    if s == '.' or s == '~':
+        s = ''
+    if not s:
+        if 'os' not in locals():
+            import os.path
+        stderr.write('%s: could not escape string: %s\n' % (
+            os.path.basename(argv[0]), original_s))
+        global exit_status
+        exit_status = 1
+    return s
+
+
+def main():
+    args = parse_args()
+    if args.args:
+        print(' '.join(
+            name_filter(arg, args.char, args.small) for arg in args.args))
+    else:
+        for line in stdin.readlines():
+            print(name_filter(line, args.char, args.small))
+    exit(exit_status)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        exit(1)
