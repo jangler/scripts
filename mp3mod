@@ -2,7 +2,6 @@
 
 IFS='
 '
-LUFS=12.0
 
 for f in $(ls *.s3m *.S3M *.xm *.XM *.mod *.MOD *.it *.IT 2>/dev/null); do
 	echo "Diskwriting $f.wav..."
