@@ -90,7 +90,9 @@ def parse_args():
 
 def char_filter(c, replace_char):
     if c in printable:
-        return replace_char if c in '`!$&*()\\|;\'"<>/ \t\n\r' else c
+        if c == "'":
+            return ''
+        return replace_char if c in '`!#$&*()\\|;\'"<>/ \t\n\r' else c
     else:
         name = unicodedata.name(c, replace_char)
         if name.startswith('COMBINING '):
@@ -129,7 +131,7 @@ def name_filter(s, replace_char, small):
         s = s[:-1]
     i = 0
     while i < len(s) - 1:
-        if s[i] == replace_char and s[i + 1] == replace_char:
+        if s[i] == replace_char and s[i + 1] in (replace_char, '.'):
             s = s[:i] + s[i+1:]
         else:
             i += 1
