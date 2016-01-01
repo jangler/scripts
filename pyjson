@@ -12,6 +12,10 @@ DESCRIPTION = 'Enter a Python REPL with JSON files loaded as local variables.'
 
 def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('-e', '--eval', metavar='src', type=str,
+                        help='evaluate and print src and exit')
+    parser.add_argument('-x', '--exec', metavar='src', type=str,
+                        help='execute src and exit')
     parser.add_argument('-u', '--unpack', action='store_true',
                         help='unpack top-level dicts into locals')
     parser.add_argument('files', metavar='file', type=str, nargs='+',
@@ -47,7 +51,12 @@ def main():
         if args.unpack and isinstance(obj, dict):
             local.update(obj)
     banner = 'locals: %s' % ', '.join(sorted(local))
-    code.interact(banner=banner, local=local)
+    if args.eval:
+        print(eval(args.eval, local))
+    elif args.exec:
+        exec(args.exec, local)
+    else:
+        code.interact(banner=banner, local=local)
 
 
 if __name__ == '__main__':
