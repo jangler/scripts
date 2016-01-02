@@ -69,8 +69,8 @@ def encode(track, normal_lufs, fmt, peak, quiet):
     outpath = '%s.%s' % (splitext(track.path)[0], fmt)
     if not quiet:
         print('writing %s...' % outpath)
-    args = ['sox', track.path, '-C', factor, outpath, 'gain', str(-HEADROOM),
-            'vol', str(gain + HEADROOM), 'dB']
+    args = ['sox', track.path, '-r', '44100', '-c', '2', '-C', factor, outpath,
+            'gain', str(-HEADROOM), 'vol', str(gain + HEADROOM), 'dB']
     if gain > 0:
         args.append('0.05')
     args += ['gain', str(peak)]
