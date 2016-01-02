@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+from os.path import basename, splitext
+from subprocess import DEVNULL, PIPE, run
+from sys import argv, stderr, stdout
+
+
+DESCRIPTION = 'Master and encode a set of audio files using ' + \
+              'loudness-scannerand SoX.'
+
+HEADROOM = 3.0  # dBFS, used during level adjustment
+
+IDEAL_LUFS = -10.0
+
+
+class Track:
+    def __init__(self, path, lufs, peak):
+        self.path, self.lufs, self.peak = path, lufs, peak
+
+
+def parse_args():
+    parser = ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('-f', dest='fmt', type=str, default='mp3',
+                        choices=['flac', 'mp3', 'ogg'],
+                        help='format of output files (default: mp3)')
+    parser.add_argument('-p', dest='peak', metavar='dBFS', type=float,
+                        default=-1.0, help='peak dBFS (default: -1.0)')
+    parser.add_argument('-q', dest='quiet', action='store_true',
+                        help='suppress non-error messages')
+    parser.add_argument('files', metavar='file', type=str,
+                        nargs='+', help='files to master')
+    return parser.parse_args()
+
+
+def die(msg):
+    stderr.write('%s: %s\n' % (basename(argv[0]), msg))
+    exit(1)
+
+
+def lufs(path):
+    process = run(['loudness', 'scan', path], stdout=PIPE,
+                  stderr=PIPE, universal_newlines=True)
+    if not process.stdout:
+        die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
+    return float(process.stdout.splitlines()[0][:5])
+
+
+def peak(path):
+    process = run(['sox', path, '-n', 'stats'], stderr=PIPE,
+                  universal_newlines=True)
+    if process.returncode:
+        die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
+    lines = process.stderr.splitlines()
+    if 'Overall' in lines[0]:
+        lines = lines[1:]
+    return float(lines[3].split()[3])
+
+
+def encode(track, normal_lufs, fmt, peak, quiet):
+    factor = {'flac': '8', 'mp3': '-0.0', 'ogg': '10'}[fmt]
+    gain = (normal_lufs - peak + IDEAL_LUFS) / 2 - track.lufs
+    outpath = '%s.%s' % (splitext(track.path)[0], fmt)
+    if not quiet:
+        print('writing %s...' % outpath)
+    args = ['sox', track.path, '-C', factor, outpath, 'gain', str(-HEADROOM),
+            'vol', str(gain + HEADROOM), 'dB']
+    if gain > 0:
+        args.append('0.05')
+    args += ['gain', str(peak)]
+    process = run(args, stderr=PIPE, universal_newlines=True)
+    if process.returncode:
+        die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
+    else:
+        stdout.write(process.stderr)
+
+
+def main():
+    args = parse_args()
+
+    tracks = []
+    for path in args.files:
+        if not args.quiet:
+            print('scanning %s...' % path)
+        track = Track(path, lufs(path), peak(path))
+        tracks.append(track)
+    delta = max(track.peak - track.lufs for track in tracks)
+    normal_lufs = args.peak - delta
+
+    for track in tracks:
+        encode(track, normal_lufs, args.fmt, args.peak, args.quiet)
+
+    if not args.quiet:
+        print('done.')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

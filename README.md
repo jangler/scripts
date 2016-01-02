@@ -1,6 +1,7 @@
 Miscellaneous public domain utility scripts. See
 [tools](https://github.com/jangler/tools) for compiled utilities.
 
+- `automaster` - master and encode a set of audio files
 - `explode` - explode directories
 - `finances` - tally ledger information from a JSON file
 - `gifopt` - optimize the size of a GIF using
