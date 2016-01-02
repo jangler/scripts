@@ -15,8 +15,8 @@ IDEAL_LUFS = -10.0
 
 
 class Track:
-    def __init__(self, path, lufs, peak):
-        self.path, self.lufs, self.peak = path, lufs, peak
+    def __init__(self, path, mlufs, slufs, peak):
+        self.path, self.mlufs, self.slufs, self.peak = path, mlufs, slufs, peak
 
 
 def parse_args():
@@ -38,12 +38,17 @@ def die(msg):
     exit(1)
 
 
-def lufs(path):
-    process = run(['loudness', 'scan', path], stdout=PIPE,
-                  stderr=PIPE, universal_newlines=True)
+def lufs_levels(*args):
+    process = run(args, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     if not process.stdout:
         die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
-    return float(process.stdout.splitlines()[0][:5])
+    return [float(line) for line in process.stdout.splitlines()]
+
+
+def lufs(path):
+    mlufs = max(lufs_levels('loudness', 'dump', '-m', '0.2', path))
+    slufs = max(lufs_levels('loudness', 'dump', '-s', '1.5', path))
+    return mlufs, slufs
 
 
 def peak(path):
@@ -59,7 +64,8 @@ def peak(path):
 
 def encode(track, normal_lufs, fmt, peak, quiet):
     factor = {'flac': '8', 'mp3': '-0.0', 'ogg': '10'}[fmt]
-    gain = (normal_lufs - peak + IDEAL_LUFS) / 2 - track.lufs
+    gain = (normal_lufs + IDEAL_LUFS) / 2 - peak - \
+           (track.mlufs + track.slufs) / 2
     outpath = '%s.%s' % (splitext(track.path)[0], fmt)
     if not quiet:
         print('writing %s...' % outpath)
@@ -82,9 +88,9 @@ def main():
     for path in args.files:
         if not args.quiet:
             print('scanning %s...' % path)
-        track = Track(path, lufs(path), peak(path))
+        track = Track(path, *lufs(path), peak(path))
         tracks.append(track)
-    delta = max(track.peak - track.lufs for track in tracks)
+    delta = max(track.peak - track.mlufs for track in tracks)
     normal_lufs = args.peak - delta
 
     for track in tracks:
