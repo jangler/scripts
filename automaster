@@ -10,13 +10,16 @@ DESCRIPTION = 'Master and encode a set of audio files using ' + \
               'loudness-scannerand SoX.'
 
 HEADROOM = 3.0  # dBFS, used during level adjustment
-
-IDEAL_LUFS = -10.0
+LIMITER_GAIN = 0.05
 
 
 class Track:
-    def __init__(self, path, mlufs, slufs, peak):
-        self.path, self.mlufs, self.slufs, self.peak = path, mlufs, slufs, peak
+    def __init__(self, path, mlufs, slufs, tlufs, peak):
+        self.path = path
+        self.mlufs = mlufs
+        self.slufs = slufs
+        self.tlufs = tlufs
+        self.peak = peak
 
 
 def parse_args():
@@ -38,17 +41,18 @@ def die(msg):
     exit(1)
 
 
-def lufs_levels(*args):
+def lufs_levels(*args, item_type=float):
     process = run(args, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     if not process.stdout:
         die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
-    return [float(line) for line in process.stdout.splitlines()]
+    return [item_type(line) for line in process.stdout.splitlines()]
 
 
 def lufs(path):
     mlufs = max(lufs_levels('loudness', 'dump', '-m', '0.2', path))
     slufs = max(lufs_levels('loudness', 'dump', '-s', '1.5', path))
-    return mlufs, slufs
+    tlufs = float(lufs_levels('loudness', 'scan', path, item_type=str)[0][:5])
+    return mlufs, slufs, tlufs
 
 
 def peak(path):
@@ -64,15 +68,14 @@ def peak(path):
 
 def encode(track, normal_lufs, fmt, peak, quiet):
     factor = {'flac': '8', 'mp3': '-0.0', 'ogg': '10'}[fmt]
-    gain = (normal_lufs + IDEAL_LUFS) / 2 - peak - \
-           (track.mlufs + track.slufs) / 2
+    gain = normal_lufs - peak - (track.mlufs + track.slufs + track.tlufs) / 3
     outpath = '%s.%s' % (splitext(track.path)[0], fmt)
     if not quiet:
         print('writing %s...' % outpath)
     args = ['sox', track.path, '-r', '44100', '-c', '2', '-C', factor, outpath,
             'gain', str(-HEADROOM), 'vol', str(gain + HEADROOM), 'dB']
     if gain > 0:
-        args.append('0.05')
+        args.append(str(LIMITER_GAIN))
     args += ['gain', str(peak)]
     process = run(args, stderr=PIPE, universal_newlines=True)
     if process.returncode:
