@@ -92,7 +92,7 @@ def char_filter(c, replace_char):
     if c in printable:
         if c == "'":
             return ''
-        return replace_char if c in '`!#$&*()\\|;\'"<>/ \t\n\r' else c
+        return replace_char if c in '`!$^&*()=[{]}\\|;:\'",<>/? \t\n\r' else c
     else:
         name = unicodedata.name(c, replace_char)
         if name.startswith('COMBINING '):
@@ -125,7 +125,7 @@ def name_filter(s, replace_char, small):
     s = ''.join(char_filter(c, replace_char) for c in s)
     if small:
         s = s.lower()
-    while s.startswith('-') or s.startswith('.'):
+    while s and s[0] in ('~', '#', '-', '.'):
         s = s[1:]
     while len(s) > 1 and s.endswith(replace_char):
         s = s[:-1]
