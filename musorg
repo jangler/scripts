@@ -29,10 +29,14 @@ for arg; do
 	album=$(gettag "$tags" album)
 	title=$(gettag "$tags" title)
 	track=$(printf %02d $(gettag "$tags" track))
-	if [[ "$album" && "$title" && "$track" ]]; then
+	if [[ "$album" && "$track" ]]; then
 		mkdir -p "$root/$album"
 		ext=$(echo "$arg" | sed 's/.\+\(\..\+$\)/\1/')
-		mv -nv "$arg" "$root/$album/${track}-$title$ext" 2>/dev/null
+		if [[ "$title" ]]; then
+			mv -nv "$arg" "$root/$album/${track}-$title$ext" 2>/dev/null
+		else
+			mv -nv "$arg" "$root/$album/${track}$ext" 2>/dev/null
+		fi
 	else
 		echo "$arg: not enough metadata" >&2
 		status=1
