@@ -105,9 +105,9 @@ def char_filter(c, replace_char):
         if name.startswith('LATIN CAPITAL LETTER '):
             return name[21]
         if name.startswith('HIRAGANA LETTER '):
-            return name.split()[3].lower()
+            return name.split()[2].lower()
         if name.startswith('KATAKANA LETTER '):
-            return name.split()[3].lower()
+            return name.split()[2].lower()
         if name.startswith('CYRILLIC SMALL LETTER '):
             return CYRILLIC_TO_LATIN.get(name.split()[3], replace_char).lower()
         if name.startswith('CYRILLIC CAPITAL LETTER '):
