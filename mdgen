@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+if [[ $# -ne 1 || "$1" == '--help' || "$1" == '-h' ]]; then
+	echo 'Usage: mdgen <file>' >&2
+	[[ "$1" == '--help' || "$1" == '-h' ]]; exit
+fi
+
+header="<!DOCTYPE html>
+<html>
+<head>
+<title>$(head -n 1 "$1")</title>
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+<style>
+a {
+color: #057;
+text-decoration: none;
+}
+a:hover {
+text-decoration: underline;
+}
+body {
+background-color: #bbb;
+color: #222;
+font-family: sans-serif;
+}
+div {
+background-color: #eee;
+margin-left: auto;
+margin-right: auto;
+max-width: 38rem;
+padding: 1rem;
+}
+</style>
+</head>
+<body>
+<div>"
+
+footer="</div>
+</body>
+</html>"
+
+outfile="${1%.md}.html"
+echo "$header" > "$outfile"
+markdown "$1" >> "$outfile"
+echo "$footer" >> "$outfile"

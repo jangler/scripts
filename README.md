@@ -9,6 +9,7 @@ Miscellaneous public domain utility scripts. See
 - `hex2schism` - convert a 24-bit hex color to a 3-tuple for schismtracker
 - `jpegopt` - optimize the size of a JPEG using ImageMagick
 - `jsonfmt` - pretty-print JSON
+- `mdgen` - generate a full HTML document from a Markdown file
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
 - `mp3mod` - convert tracker modules in a folder to volume-equalized MP3 using
