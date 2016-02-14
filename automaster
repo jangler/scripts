@@ -14,11 +14,10 @@ LIMITER_GAIN = 0.05
 
 
 class Track:
-    def __init__(self, path, mlufs, slufs, tlufs, peak):
+    def __init__(self, path, mlufs, slufs, peak):
         self.path = path
         self.mlufs = mlufs
         self.slufs = slufs
-        self.tlufs = tlufs
         self.peak = peak
 
 
@@ -51,8 +50,7 @@ def lufs_levels(*args, item_type=float):
 def lufs(path):
     mlufs = max(lufs_levels('loudness', 'dump', '-m', '0.2', path))
     slufs = max(lufs_levels('loudness', 'dump', '-s', '1.5', path))
-    tlufs = float(lufs_levels('loudness', 'scan', path, item_type=str)[0][:5])
-    return mlufs, slufs, tlufs
+    return mlufs, slufs
 
 
 def peak(path):
@@ -68,7 +66,7 @@ def peak(path):
 
 def encode(track, normal_lufs, fmt, peak, quiet):
     factor = {'flac': '8', 'mp3': '-0.0', 'ogg': '10'}[fmt]
-    gain = normal_lufs - peak - (track.mlufs + track.slufs + track.tlufs) / 3
+    gain = normal_lufs - peak - (track.mlufs + track.slufs) / 2
     outpath = '%s.%s' % (splitext(track.path)[0], fmt)
     if not quiet:
         print('writing %s...' % outpath)
