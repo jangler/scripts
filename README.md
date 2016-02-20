@@ -21,6 +21,7 @@ Miscellaneous public domain utility scripts. See
   hyphens
 - `prune` - remove empty directories from a directory tree
 - `pyjson` - load JSON files and enter a Python REPL
+- `randparty` - generate a random pokémon red and/or blue party
 - `taginfo` - print information about a git tag
 - `wdname` - rename tmux window to basename of working directory
 - `wri` - view formatted ri output in browser using markdown
