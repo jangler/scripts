@@ -153,6 +153,13 @@ ALL_SPECIES = {
   ["Mewtwo"] = 0;
 }
 
+TRADE_EVOLUTIONS = {
+  ["Alakazam"] = 0;
+  ["Machamp"] = 0;
+  ["Golem"] = 0;
+  ["Gengar"] = 0;
+}
+
 RED_EXCLUSIVES = {
   ["Ekans"] = 0;
   ["Arbok"] = 0;
@@ -165,7 +172,7 @@ RED_EXCLUSIVES = {
   ["Arcanine"] = 0;
   ["Scyther"] = 0;
   ["Electabuzz"] = 0;
-};
+}
 
 BLUE_EXCLUSIVES = {
   ["Sandshrew"] = 0;
@@ -179,9 +186,9 @@ BLUE_EXCLUSIVES = {
   ["Victreebel"] = 0;
   ["Magmar"] = 0;
   ["Pinsir"] = 0;
-};
+}
 
-STARTERS = {
+STARTER_MUTEX = {
   ["Bulbasaur"] = 0;
   ["Ivysaur"] = 0;
   ["Venusaur"] = 0;
@@ -191,6 +198,13 @@ STARTERS = {
   ["Squirtle"] = 0;
   ["Wartortle"] = 0;
   ["Blastoise"] = 0;
+}
+
+FOSSIL_MUTEX = {
+  ["Omanyte"] = 0;
+  ["Omastar"] = 0;
+  ["Kabuto"] = 0;
+  ["Kabutops"] = 0;
 }
 
 PARTY_SIZE = 6
@@ -208,32 +222,28 @@ function pick(t)
   return keys[i], t[keys[i]]
 end
 
+function setXOR(t1, t2)
+  for k in pairs(t2) do
+    t1[k] = nil
+  end
+end
+
 function generateParty(versions)
-  -- start by copying all species to pool
+  -- start by copying all species to pool, minus trade evolutions
   local pool = {}
   for k, v in pairs(ALL_SPECIES) do
     pool[k] = v
   end
+  setXOR(pool, TRADE_EVOLUTIONS)
 
   -- eliminate species unobtainable due to version
-  local red, blue = false, false
   for _, version in ipairs(versions) do
     if version == "red" then
-      red = true
+      setXOR(pool, BLUE_EXCLUSIVES)
     elseif version == "blue" then
-      blue = true
+      setXOR(pool, RED_EXCLUSIVES)
     else
-      print("invalid version: " .. version)
-    end
-  end
-  if red then
-    for species in pairs(BLUE_EXCLUSIVES) do
-      pool[species] = nil
-    end
-  end
-  if blue then
-    for species in pairs(RED_EXCLUSIVES) do
-      pool[species] = nil
+      io.stderr:write("invalid version: " .. version .. "\n")
     end
   end
 
@@ -243,13 +253,20 @@ function generateParty(versions)
     species = pick(pool)
     party[i] = species
 
-    -- remove species from pool, and other starters if species is a starter
-    if STARTERS[species] then
-      for species in pairs(STARTERS) do
-        pool[species] = nil
-      end
+    -- remove species from pool, or mutex if species is in mutex
+    if STARTER_MUTEX[species] then
+      setXOR(pool, STARTER_MUTEX)
+    elseif FOSSIL_MUTEX[species] then
+      setXOR(pool, FOSSIL_MUTEX)
     else
       pool[species] = nil
+    end
+
+    -- remove opposing version exclusives if species is version exclusive
+    if RED_EXCLUSIVES[species] then
+      setXOR(pool, BLUE_EXCLUSIVES)
+    elseif BLUE_EXCLUSIVES[species] then
+      setXOR(pool, RED_EXCLUSIVES)
     end
   end
   return party
@@ -257,8 +274,8 @@ end
 
 function main()
   math.randomseed(os.time())
-  if #arg < 1 then
-    print("usage: catchrate version ...")
+  if #arg > 0 and (arg[1] == "-h" or arg[1] == "--help") then
+    print("Usage: randparty [VERSION]...")
   else
     for _, species in ipairs(generateParty(arg)) do
       print(species)
