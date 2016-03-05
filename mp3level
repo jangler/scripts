@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser
+from os.path import basename
+from subprocess import PIPE, run
+from sys import argv, stderr, stdout
+
+
+DESCRIPTION = 'Adjust volume of mp3 files based on peak short-term LUFS ' + \
+              'loudness.'
+
+HEADROOM = 1.0  # dBFS, used during level adjustment
+LIMITER_GAIN = 0.05
+TARGET_LUFS = -12.0
+
+
+def parse_args():
+    parser = ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('-q', dest='quiet', action='store_true',
+                        help='suppress non-error messages')
+    parser.add_argument('files', metavar='file', type=str,
+                        nargs='+', help='files to master')
+    return parser.parse_args()
+
+
+def die(msg):
+    stderr.write('%s: %s\n' % (basename(argv[0]), msg))
+    exit(1)
+
+
+def scan(path, quiet):
+    if not quiet:
+        print('scanning %s ...' % path)
+    args = ['loudness', 'dump', '-s', '1.5', path]
+    process = run(args, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    if not process.stdout:
+        die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
+    peak = max(float(line) for line in process.stdout.splitlines())
+    return TARGET_LUFS - peak
+
+
+def write(path, gain, quiet):
+    if not quiet:
+        print('adjusting %s by %.1f dB' % (path, gain))
+    outpath = 'new.' + path
+    args = ['sox', path, '-r', '44100', '-c', '2', '-C', '320', outpath,
+            'gain', str(-HEADROOM), 'vol', str(gain + HEADROOM * 2), 'dB']
+    if gain > 0:
+        args.append(str(LIMITER_GAIN))
+    args += ['gain', str(-HEADROOM)]
+    process = run(args, stderr=PIPE, universal_newlines=True)
+    if process.returncode:
+        die('%s: %s' % (' '.join(process.args), process.stderr.strip()))
+    else:
+        stdout.write(process.stderr)
+
+
+def main():
+    args = parse_args()
+    for path in args.files:
+        gain = scan(path, args.quiet)
+        write(path, gain, args.quiet)
+    if not args.quiet:
+        print('done.')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

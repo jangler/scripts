@@ -12,6 +12,7 @@ Miscellaneous public domain utility scripts. See
 - `mdgen` - generate a full HTML document from a Markdown file
 - `moss-find` - invoke a [moss](https://github.com/jangler/moss) command with
   arguments given by find
+- `mp3level` - slightly more specific variation of `automaster`
 - `mp3mod` - convert tracker modules in a folder to volume-equalized MP3 using
   schismtracker,
   [loudness-scanner](https://github.com/jiixyj/loudness-scanner), and sox
