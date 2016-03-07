@@ -45,7 +45,7 @@ def write(path, gain, quiet):
     outpath = 'new.' + path
     args = ['sox', path, '-r', '44100', '-c', '2', '-C', '320', outpath,
             'gain', str(-HEADROOM), 'vol', str(gain + HEADROOM * 2), 'dB']
-    if gain > 0:
+    if gain + HEADROOM * 2 > 0:
         args.append(str(LIMITER_GAIN))
     args += ['gain', str(-HEADROOM)]
     process = run(args, stderr=PIPE, universal_newlines=True)
