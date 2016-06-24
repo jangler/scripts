@@ -8,6 +8,7 @@ from sys import stderr
 
 FLAG_SAMPLE_ASSOCIATED = 1<<0
 FLAG_16BIT = 1<<1
+FLAG_STEREO = 1<<2
 
 
 def parse_args():
@@ -37,6 +38,8 @@ def dump_sample(data, offset, smpdir, smp_num):
     if smp_name:
         smp_length = unpack_from('=I', data, offset+0x30)[0]
         if smp_flags & FLAG_16BIT:
+            smp_length *= 2
+        if smp_flags & FLAG_STEREO:
             smp_length *= 2
         smp_point = unpack_from('=I', data, offset+0x48)[0]
         with open(join(smpdir, smp_name + '.raw'), 'wb') as raw:
