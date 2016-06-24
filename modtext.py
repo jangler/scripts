@@ -33,8 +33,10 @@ def die(*args):
 
 
 def dump_sample(data, offset, smpdir, smp_num):
-    smp_name = unpack_from('26s', data, offset+0x14)[0].decode().strip('\0 ')
     smp_flags = unpack_from('B', data, offset+0x12)[0]
+    if not smp_flags and FLAG_SAMPLE_ASSOCIATED:
+        return
+    smp_name = unpack_from('26s', data, offset+0x14)[0].decode().strip('\0 ')
     if smp_name:
         smp_length = unpack_from('=I', data, offset+0x30)[0]
         if smp_flags & FLAG_16BIT:
@@ -125,7 +127,7 @@ def text_to_module(inpath, outpath, smpdir):
                     smp_name = unpack_from(
                         '26s', data, 0x14)[0].decode().strip('\0 ')
                     smp_flags = unpack_from('B', data, 0x12)[0]
-                    if smp_name:
+                    if smp_name and smp_flags & FLAG_SAMPLE_ASSOCIATED:
                         raw_name = join(smpdir, smp_name + '.raw')
                         with open(raw_name, 'rb') as raw:
                             smp_data = raw.read()
