@@ -33,7 +33,7 @@ def read_module_pattern(data, offset):
     return channels
 
 
-def read_module(path, verbose):
+def read_module(path):
     with open(path, 'rb') as f:
         data = f.read()
 
@@ -56,18 +56,18 @@ def read_module(path, verbose):
     return mod
 
 
-def write_module(mod, path, verbose):
+def write_module(mod, path):
     # TODO
     print(mod)
 
 
-def read_text(path, verbose):
+def read_text(path):
     mod = Namespace()
     # TODO
     return mod
 
 
-def write_text(mod, path, verbose):
+def write_text(mod, path):
     # TODO
     print(mod)
 
@@ -76,11 +76,11 @@ def main():
     args = parse_args()
 
     if args.infile.lower().endswith('.it'):
-        mod = read_module(args.infile, args.verbose)
-        write_text(mod, args.outfile, args.verbose)
+        mod = read_module(args.infile)
+        write_text(mod, args.outfile)
     elif args.outfile.lower().endswith('.txt'):
-        mod = read_text(args.infile, args.verbose)
-        write_module(mod, args.outfile, args.verbose)
+        mod = read_text(args.infile)
+        write_module(mod, args.outfile)
     else:
         die('input file must have extension .it or .txt')
 
