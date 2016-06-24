@@ -6,9 +6,9 @@ from os.path import join
 from struct import pack, unpack_from
 from sys import stderr
 
-FLAG_SAMPLE_ASSOCIATED = 1<<0
-FLAG_16BIT = 1<<1
-FLAG_STEREO = 1<<2
+FLAG_SAMPLE_ASSOCIATED = 1 << 0
+FLAG_16BIT = 1 << 1
+FLAG_STEREO = 1 << 2
 
 
 def parse_args():
