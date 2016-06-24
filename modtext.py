@@ -2,28 +2,27 @@
 
 from argparse import ArgumentParser
 from base64 import b64decode, b64encode
+from os.path import join
 from struct import pack, unpack_from
 from sys import stderr
 
-
-class Namespace():
-    def __str__(self):
-        return str(self.__dict__)
+FLAG_SAMPLE_ASSOCIATED = 1<<0
+FLAG_16BIT = 1<<1
 
 
 def parse_args():
     parser = ArgumentParser(
         description='Convert IT module to and from a Base64 plain-text '
                     'format. This format does not include PCM sample data. '
-                    'When converting from text to module, the samples are '
-                    'loaded based on filename from the current directory, or '
-                    'an alternate directory supplied by the -d option.')
+                    'Sample data is dumped to and loaded from files in the '
+                    'working directory, or an alternate directory supplied '
+                    'by the -d option.')
     parser.add_argument(
         'infile', metavar='INFILE', help='input file (.it or .txt)')
     parser.add_argument(
         'outfile', metavar='OUTFILE', help='output file (.it or .txt)')
     parser.add_argument(
-        '-d', '--dir', default='.', help='directory containing samples')
+        '-d', '--dir', default='', help='directory containing samples')
     return parser.parse_args()
 
 
@@ -32,7 +31,21 @@ def die(*args):
     exit(1)
 
 
-def module_to_text(inpath, outpath):
+def dump_sample(data, offset, smpdir, smp_num):
+    smp_name = unpack_from('26s', data, offset+0x14)[0].decode().strip('\0 ')
+    smp_flags = unpack_from('B', data, offset+0x12)[0]
+    if smp_name:
+        smp_length = unpack_from('=I', data, offset+0x30)[0]
+        if smp_flags & FLAG_16BIT:
+            smp_length *= 2
+        smp_point = unpack_from('=I', data, offset+0x48)[0]
+        with open(join(smpdir, smp_name + '.raw'), 'wb') as raw:
+            raw.write(data[smp_point:smp_point+smp_length])
+    elif smp_flags & FLAG_SAMPLE_ASSOCIATED:
+        print('could not export nameless sample %02d' % smp_num, file=stderr)
+
+
+def module_to_text(inpath, outpath, smpdir):
     with open(inpath, 'rb') as f:
         data = f.read()
 
@@ -55,6 +68,7 @@ def module_to_text(inpath, outpath):
             f.write(b64encode(data[offset:offset+554]).decode() + '\n')
         for i, offset in enumerate(smp_offsets):
             f.write('[Sample%02d]\n' % (i+1))
+            dump_sample(data, offset, smpdir, i+1)
             f.write(b64encode(data[offset:offset+0x50]).decode() + '\n')
         for i, offset in enumerate(pat_offsets):
             f.write('[Pattern%03d]\n' % i)
@@ -62,7 +76,7 @@ def module_to_text(inpath, outpath):
             f.write(b64encode(data[offset:offset+8+length]).decode() + '\n')
 
 
-def text_to_module(inpath, outpath):
+def text_to_module(inpath, outpath, smpdir):
     with open(inpath, 'r') as f:
         lines = [line.strip('\n') for line in f.readlines()]
 
@@ -87,29 +101,50 @@ def text_to_module(inpath, outpath):
     while i < len(offsets):
         offsets[i] += len(offsets) * 4
         i += 1
+    cur_offset += len(offsets) * 4
 
-    wrote_offsets = wrote_orders = False
+    samples = []
+    wrote_offsets = wrote_orders = is_sample = False
     pos = 0
     with open(outpath, 'wb') as f:
         sections = 'Header', 'Orders', 'Instrument', 'Sample', 'Pattern'
         for line in lines:
             if any(line.startswith('[' + s) for s in sections):
+                is_sample = line.startswith('[Sample')
                 if line == '[Orders]':
                     wrote_orders = True
                 elif wrote_orders and not wrote_offsets:
                     pos += f.write(pack('%dI' % len(offsets), *offsets))
                     wrote_offsets = True
             else:
-                pos += f.write(b64decode(line))
+                data = b64decode(line)
+                if is_sample:
+                    smp_name = unpack_from(
+                        '26s', data, 0x14)[0].decode().strip('\0 ')
+                    smp_flags = unpack_from('B', data, 0x12)[0]
+                    if smp_name:
+                        raw_name = join(smpdir, smp_name + '.raw')
+                        with open(raw_name, 'rb') as raw:
+                            smp_data = raw.read()
+                        smp_point = pack('I', cur_offset)
+                        data = data[:0x48] + smp_point + data[0x4c:]
+                        cur_offset += len(smp_data)
+                        samples.append(smp_data)
+                    elif smp_flags & FLAG_SAMPLE_ASSOCIATED:
+                        print('could not import nameless sample %02d' % (i+1),
+                              file=stderr)
+                pos += f.write(data)
+        for sample in samples:
+            pos += f.write(sample)
 
 
 def main():
     args = parse_args()
 
     if args.infile.lower().endswith('.it'):
-        module_to_text(args.infile, args.outfile)
+        module_to_text(args.infile, args.outfile, args.dir)
     elif args.infile.lower().endswith('.txt'):
-        text_to_module(args.infile, args.outfile)
+        text_to_module(args.infile, args.outfile, args.dir)
     else:
         die('input file must have extension .it or .txt')
 
