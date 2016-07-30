@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+usage() {
+	echo "Usage: $(basename $0) [global|local]" >&2
+	echo ''
+	echo 'Change urn-gtk gsettings to accomodate global or local keys.'
+	[[ $# != 0 ]]; exit
+}
+
+if [[ $# == 0 || "$1" == '--help' || "$1" == '-h' ]]; then
+	usage
+fi
+
+if [[ "$1" == 'global' ]]; then
+	gsettings set wildmouse.urn global-hotkeys true
+	gsettings set wildmouse.urn keybind-start-split '<Control>space'
+	gsettings set wildmouse.urn keybind-stop-reset '<Control>BackSpace'
+	gsettings set wildmouse.urn keybind-cancel '<Control>Delete'
+	gsettings set wildmouse.urn keybind-unsplit '<Control>Page_Up'
+	gsettings set wildmouse.urn keybind-skip-split '<Control>Page_Down'
+elif [[ "$1" == 'local' ]]; then
+	gsettings set wildmouse.urn global-hotkeys false
+	gsettings set wildmouse.urn keybind-start-split 'space'
+	gsettings set wildmouse.urn keybind-stop-reset 'BackSpace'
+	gsettings set wildmouse.urn keybind-cancel 'Delete'
+	gsettings set wildmouse.urn keybind-unsplit 'Page_Up'
+	gsettings set wildmouse.urn keybind-skip-split 'Page_Down'
+else
+	usage
+fi
