@@ -14,8 +14,8 @@ instruments/samples/etc aren't supported in any capacity.
 To make white noise, use a note value out of fsound's supported octave range
 (for example, C-0).
 
-If you find a bug in this program, contact me in IRC (Jangler on irc.esper.net)
-or by email (brandon *at* jangler *dot* info).
+If you find a bug in this program, contact me in IRC (jangler on irc.esper.net)
+or by email (brandon *at* lightcones *dot* net).
 
 Version history
 ---------------
