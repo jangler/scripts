@@ -32,10 +32,15 @@ for arg; do
 	if [[ "$album" && "$track" ]]; then
 		mkdir -p "$root/$album"
 		ext=$(echo "$arg" | sed 's/.\+\(\..\+$\)/\1/')
-		if [[ "$title" ]]; then
-			mv -nv "$arg" "$root/$album/${track}-$title$ext" 2>/dev/null
+		if [[ $(echo "$arg" | cut -d ' ' -f 1) == BotB ]]; then
+			folder="$root/botb/$album"
 		else
-			mv -nv "$arg" "$root/$album/${track}$ext" 2>/dev/null
+			folder="$root/$album"
+		fi
+		if [[ "$title" ]]; then
+			mv -nv "$arg" "$folder/${track}-$title$ext" 2>/dev/null
+		else
+			mv -nv "$arg" "$folder/${track}$ext" 2>/dev/null
 		fi
 	else
 		echo "$arg: not enough metadata" >&2
