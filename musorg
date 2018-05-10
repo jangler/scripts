@@ -15,7 +15,8 @@ fi
 gettag () {
 	echo "$1" | grep "^    $2 " | sed 's/^.\+: //' | \
 		tr '[:upper:]' '[:lower:]' | tr -d "'" | \
-		tr -s '`~!@#$%^&*()=+[{]}\|;:",<.>/? ' '_'
+		tr -s '`~!@#$%^&*()=+[{]}\|;:",<.>/? ' '_' | \
+		sed 's/^_//' | sed 's/_$//'
 }
 
 status=0
@@ -28,17 +29,15 @@ for arg; do
 		continue
 	fi
 
+	folder="$root"
+	album=$(gettag "$tags" album)
 	artist=$(gettag "$tags" artist)
-	if [[ "$artist" ]]; then
-		folder="$root/$artist"
-		album=$(gettag "$tags" album)
-		if [[ $(echo "$arg" | cut -d ' ' -f 1) == BotB ]]; then
-			folder="$folder/botb"
-		elif [[ "$album" ]]; then
-			folder="$folder/$album"
-		fi
-	else
-		folder="$root"
+	if [[ $(echo "$arg" | cut -d ' ' -f 1) == BotB ]]; then
+		folder="$folder/botb"
+	elif [[ "$album" ]]; then
+		folder="$folder/$album"
+	elif [[ "$artist" ]]; then
+		folder="$folder/$artist"
 	fi
 
 	track=$(printf %02d $(gettag "$tags" track))
@@ -46,7 +45,11 @@ for arg; do
 	ext=$(echo "$arg" | sed 's/.\+\(\..\+$\)/\1/')
 
 	mkdir -p "$folder"
-	mv -nv "$arg" "$folder/${track}_$title$ext"
+	if [[ "$track" == 00 ]]; then
+		mv -nv "$arg" "$folder/$title$ext"
+	else
+		mv -nv "$arg" "$folder/${track}_$title$ext"
+	fi
 done
 
 exit $status
