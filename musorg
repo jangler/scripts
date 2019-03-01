@@ -13,8 +13,8 @@ if [[ -z `which ffprobe 2>/dev/null` ]]; then
 fi
 
 gettag () {
-	echo "$1" | grep "^    $2 " | sed 's/^.\+: //' | \
-		tr '[:upper:]' '[:lower:]' | tr -d "'" | \
+	echo "$1" | tr '[:upper:]' '[:lower:]' | grep "^    $2 " | \
+		sed 's/^.\+: //' | tr -d "'" | \
 		tr -s '`~!@#$%^&*()=+[{]}\|;:",<.>/? ' '_' | \
 		sed 's/^_//' | sed 's/_$//'
 }
