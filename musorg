@@ -7,14 +7,14 @@ if [[ $# == 0 || "$1" == '--help' || "$1" == '-h' ]]; then
 	[[ $# != 0 ]]; exit
 fi
 
-if [[ -z `which ffprobe 2>/dev/null` ]]; then
-	echo 'musorg: ffprobe not installed' >&2
+if [[ -z `which taffy 2>/dev/null` ]]; then
+	echo 'musorg: taffy not installed' >&2
 	exit 1
 fi
 
 gettag () {
-	echo "$1" | tr '[:upper:]' '[:lower:]' | grep "^    $2 " | \
-		sed 's/^.\+: //' | tr -d "'" | \
+	echo "$1" | tr '[:upper:]' '[:lower:]' | grep "^$2:" | \
+		sed 's/^.\+: \+//' | tr -d "'" | \
 		tr -s '`~!@#$%^&*()=+[{]}\|;:",<.>/? ' '_' | \
 		sed 's/^_//' | sed 's/_$//'
 }
@@ -22,7 +22,7 @@ gettag () {
 status=0
 
 for arg; do
-	tags=$(ffprobe "$arg" 2>&1)
+	tags=$(taffy "$arg" 2>&1)
 	if [[ $? != 0 ]]; then
 		echo "$arg: unsupported file format"
 		status=1
