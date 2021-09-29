@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+# quizzes the user on piano keyspans using python-rtmidi.
+
+import random
+import time
+
+import rtmidi
+
+key_names = 'C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'
+
+max_keyspan = 31
+
+def name_key(key):
+    return '%s%d' % (key_names[key % len(key_names)], key // len(key_names))
+
+def get_noteon_blocking(port):
+    while True:
+        msg = port.get_message()
+        if msg and msg[0][0] == 144:
+            return msg[0][1]
+        time.sleep(0.01)
+
+port = rtmidi.MidiIn(rtmidi.API_UNIX_JACK)
+port.open_port()
+port.set_port_name('keyspan-quiz.py')
+print('send a midi note to start the quiz.')
+start_key = get_noteon_blocking(port)
+print('starting key: ' + name_key(start_key))
+
+num_questions = 10
+num_correct = 0
+total_time = 0
+
+try:
+    while True:
+        while True:
+            keyspan = random.randint(-max_keyspan, max_keyspan)
+            if keyspan + start_key in range(0, 128):
+                break
+        print('%s + %d keys?' % (name_key(start_key), keyspan))
+        start_time = time.time()
+        entered_key = get_noteon_blocking(port)
+        elapsed_time = time.time() - start_time
+        total_time += elapsed_time
+        num_questions += 1
+        if entered_key == start_key + keyspan:
+            print('%s: correct (%.1fs)' % (name_key(entered_key), elapsed_time))
+            num_correct += 1
+            start_key = entered_key
+        else:
+            print('%s: incorrect (%.1fs); the correct answer was %s' %
+                    (name_key(entered_key), elapsed_time, name_key(start_key + keyspan)))
+except KeyboardInterrupt:
+    pass
+
+print('%d/%d correct (avg. %.1fs)' %
+        (num_correct, num_questions, total_time / num_questions))
