@@ -16,8 +16,7 @@ Miscellaneous public domain utility scripts. See
 - `mp3mod` - convert tracker modules in a folder to volume-equalized MP3 using
   schismtracker,
   [loudness-scanner](https://github.com/jiixyj/loudness-scanner), and sox
-- `musorg` - organize audio files based on metadata using
-  [taffy](https://github.com/jangler/taffy) and `nicename`
+- `musorg` - organize audio files based on metadata using pytaglib
 - `nicename` - translate arguments or lines to ASCII letters, digits, and
   hyphens
 - `prune` - remove empty directories from a directory tree
