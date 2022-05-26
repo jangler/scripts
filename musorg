@@ -7,30 +7,50 @@ import taglib # pip install pytaglib
 parser = argparse.ArgumentParser(description='Organize music files.')
 parser.add_argument('files', metavar='FILE', type=str, nargs='+',
         help='file to process')
+parser.add_argument('-b', '--bootleg', action='store_true',
+        help='organize by artist only')
 parser.add_argument('-c', '--copy', action='store_true',
         help='copy files instead of moving')
 parser.add_argument('-r', '--root', metavar='DIR', type=str,
         default='~/Music', help='root destination directory')
 args = parser.parse_args()
 
-REQUIRED_KEYS = ['ALBUMARTIST', 'ARTIST'], ['TRACKNUMBER'], ['TITLE']
+required_keys = [['ALBUMARTIST', 'ARTIST']]
+if not args.bootleg:
+    required_keys += [['ALBUM'], ['TITLE'], ['TRACKNUMBER']]
 
 # process files
 for path in args.files:
     song = taglib.File(path)
-    for group in REQUIRED_KEYS:
+    for group in required_keys:
         if all(key not in song.tags for key in group):
             raise KeyError('{} missing all of {}'.format(path, group))
-    newpath = os.path.join(
-        os.path.expanduser(args.root),
-        '{} - {}'.format(
-            song.tags['ALBUMARTIST'][0] if 'ALBUMARTIST' in song.tags \
-                    else song.tags['ARTIST'][0],
-            song.tags['ALBUM'][0]).replace('/', '-'),
-        '{:02} {}.{}'.format(
-            int(song.tags['TRACKNUMBER'][0].split('/')[0]),
-            song.tags['TITLE'][0].replace('/', '-'),
-            path.split('.')[-1]))
+    if args.bootleg:
+        newpath = os.path.join(
+            os.path.expanduser(args.root),
+            (song.tags['ALBUMARTIST'][0] if 'ALBUMARTIST' in song.tags \
+                    else song.tags['ARTIST'][0]).replace('/', '-'),
+            '{}.{}'.format(
+                song.tags['TITLE'][0].replace('/', '-'),
+                path.split('.')[-1]) if 'TITLE' in song.tags \
+                        else os.path.basename(path))
+    else:
+        newpath = os.path.join(
+            os.path.expanduser(args.root),
+            '{} - {}'.format(
+                song.tags['ALBUMARTIST'][0] if 'ALBUMARTIST' in song.tags \
+                        else song.tags['ARTIST'][0],
+                song.tags['ALBUM'][0]).replace('/', '-'),
+            '{:02} {}{}.{}'.format(
+                int(song.tags['TRACKNUMBER'][0].split('/')[0]),
+                song.tags['ARTIST'][0].replace('/', '-') + ' - ' \
+                        if ('ALBUMARTIST' in song.tags \
+                        and 'ARTIST' in song.tags \
+                        and song.tags['ARTIST'][0].lower() != \
+                        song.tags['ALBUMARTIST'][0].lower()) \
+                        else '',
+                song.tags['TITLE'][0].replace('/', '-'),
+                path.split('.')[-1]))
     song.close()
     subprocess.run(['mkdir', '-pv', os.path.dirname(newpath)],
             stdout=sys.stdout, stderr=sys.stderr)
