@@ -1,0 +1,45 @@
+#!/usr/bin/env racket
+#lang racket/base
+
+; See ../python/tab. This script does the same thing, but 8x slower when
+; compiled and 12x slower when interpreted. It's also about 40% more typing,
+; and doesn't detect different CSV formats as well as the Python script does.
+
+(require racket/string csv-reading csv-writing)
+
+(define tab-width 8)
+
+(define (read-lines)
+  (for/foldr ([lines null]) ([line (in-lines)])
+    (cons line lines)))
+
+(define (untab lines)
+  (display-table (for/list ([line lines])
+                   (regexp-split #rx"\t+" line))))
+
+(define (tab-ceiling n)
+  (ceiling (/ n tab-width)))
+
+(define ((max-width rows) i)
+  (for/fold ([width 0]) ([row rows])
+    (max width (tab-ceiling (+ 1 (string-length (list-ref row i)))))))
+
+(define (tab lines)
+  (let* ([rows (csv->list (string-join lines "\n"))]
+         [row-length (length (car rows))]
+         [col-indices (build-list row-length values)]
+         [target-tabs (map (max-width rows) col-indices)])
+    (for ([row rows])
+      (for ([col row] [i col-indices])
+        (let ([n (tab-ceiling (- (* tab-width (list-ref target-tabs i))
+                                 (string-length col)))])
+          (display col)
+          (when (< i (- row-length 1))
+            (display (make-string n #\tab)))))
+      (newline))))
+
+(let ([lines (read-lines)])
+  (if (for/or ([line lines])
+        (string-contains? line "\t"))
+    (untab lines)
+    (tab lines)))

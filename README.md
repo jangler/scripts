@@ -6,6 +6,7 @@ multiple languages.
 
 - `bash/explode` - explode directories
 - `bash/gifopt` - optimize the size of a GIF using
+  [gifdrop](https://github.com/jangler/tools) and gifsicle
 - `bash/jpegopt` - optimize the size of a JPEG using ImageMagick
 - `bash/mdgen` - generate a full HTML document from a Markdown file
 - `bash/moss-find` - invoke a [moss](https://github.com/jangler/moss) command
@@ -17,7 +18,6 @@ multiple languages.
 - `bash/wdname` - rename tmux window to basename of working directory
 - `bash/wri` - view formatted ri output in browser using markdown
 - `bash/xsync` - synchronize clipboard with primary selection using xclip
-  [gifdrop](https://github.com/jangler/tools) and gifsicle
 - `luajit/randparty` - generate a random pokémon red and/or blue party
 - `python/automaster` - master and encode a set of audio files
 - `python/finances` - tally ledger information from a JSON file
@@ -27,7 +27,7 @@ multiple languages.
 - `python/mp3level` - slightly more specific variation of `automaster`
 - `python/musorg` - organize audio files based on metadata using pytaglib
 - `python/pyjson` - load JSON files and enter a Python REPL
+- `{python,racket}/tab` - pretty-print or un-pretty-print CSV
 - `python/shellname` - translate arguments or lines to ASCII letters, digits,
   and hyphens
-- `python/tab` - pretty-print or un-pretty-print CSV
 - `ruby/taginfo` - print information about a git tag
