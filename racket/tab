@@ -1,9 +1,10 @@
 #!/usr/bin/env racket
 #lang racket/base
 
-; See ../python/tab. This script does the same thing, but 8x slower when
-; compiled and 12x slower when interpreted. It's also about 40% more typing,
-; and doesn't detect different CSV formats as well as the Python script does.
+; See ../python/tab. This script does the same thing, but with a quarter-second
+; constant factor on my machine (the linear factor isn't significantly
+; different from Python's). It also doesn't detect different CSV formats as
+; well as the Python script does.
 
 (require racket/string csv-reading csv-writing)
 
@@ -27,10 +28,11 @@
 (define (tab lines)
   (let* ([rows (csv->list (string-join lines "\n"))]
          [row-length (length (car rows))]
-         [col-indices (build-list row-length values)]
-         [target-tabs (map (max-width rows) col-indices)])
+         [max-width-rows (max-width rows)]
+         [target-tabs (for/list ([i (in-range row-length)])
+                        (max-width-rows i))])
     (for ([row rows])
-      (for ([col row] [i col-indices])
+      (for ([col row] [i (in-naturals)])
         (let ([n (tab-ceiling (- (* tab-width (list-ref target-tabs i))
                                  (string-length col)))])
           (display col)
