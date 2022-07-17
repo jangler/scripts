@@ -23,7 +23,7 @@ def get_noteon_blocking(port):
 
 port = rtmidi.MidiIn(rtmidi.API_UNIX_JACK)
 port.open_port()
-port.set_port_name('keyspan-quiz.py')
+port.set_port_name('keyspan-quiz')
 print('send a midi note to start the quiz.')
 start_key = get_noteon_blocking(port)
 print('starting key: ' + name_key(start_key))
