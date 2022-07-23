@@ -11,6 +11,8 @@ parser.add_argument('-b', '--bootleg', action='store_true',
         help='organize by artist only')
 parser.add_argument('-c', '--copy', action='store_true',
         help='copy files instead of moving')
+parser.add_argument('-d', '--dryrun', action='store_true',
+        help='dry run; do not move files')
 parser.add_argument('-r', '--root', metavar='DIR', type=str,
         default='~/Music', help='root destination directory')
 args = parser.parse_args()
@@ -18,6 +20,14 @@ args = parser.parse_args()
 required_keys = [['ALBUMARTIST', 'ARTIST']]
 if not args.bootleg:
     required_keys += [['ALBUM'], ['TITLE'], ['TRACKNUMBER']]
+
+def discnumber_prefix(tags):
+    if 'DISCNUMBER' not in tags:
+        return ''
+    tokens = tags['DISCNUMBER'][0].split('/')
+    return tokens[0] + '-' \
+            if len(tokens) > 1 or int(tokens[0]) > 1 \
+            else ''
 
 # process files
 for path in args.files:
@@ -41,7 +51,8 @@ for path in args.files:
                 song.tags['ALBUMARTIST'][0] if 'ALBUMARTIST' in song.tags \
                         else song.tags['ARTIST'][0],
                 song.tags['ALBUM'][0]).replace('/', '-'),
-            '{:02} {}{}.{}'.format(
+            '{}{:02} {}{}.{}'.format(
+                discnumber_prefix(song.tags),
                 int(song.tags['TRACKNUMBER'][0].split('/')[0]),
                 song.tags['ARTIST'][0].replace('/', '-') + ' - ' \
                         if ('ALBUMARTIST' in song.tags \
@@ -52,7 +63,10 @@ for path in args.files:
                 song.tags['TITLE'][0].replace('/', '-'),
                 path.split('.')[-1]))
     song.close()
-    subprocess.run(['mkdir', '-pv', os.path.dirname(newpath)],
-            stdout=sys.stdout, stderr=sys.stderr)
-    subprocess.run(['cp' if args.copy else 'mv', '-nv', path, newpath],
-            stdout=sys.stdout, stderr=sys.stderr)
+    commands = [['mkdir', '-pv', os.path.dirname(newpath)],
+                ['cp' if args.copy else 'mv', '-nv', path, newpath]]
+    for cmd in commands:
+        if args.dryrun:
+            print(' '.join(cmd))
+        else:
+            subprocess.run(cmd, stdout=sys.stdout, stderr=sys.stderr)
