@@ -1,0 +1,86 @@
+#!/usr/bin/env -S csi -script
+
+;;; Copies non-libc dynamic libraries linked to by an executable to the current
+;;; directory, and modify the executable's library path to look in its current
+;;; directory. Also displays the sizes of the executable and its dependencies.
+;;;
+;;; Requires packages: chicken-bin, libc-bin, patchelf
+;;; Requires eggs: srfi-1, srfi-13
+;;;
+;;; TODO: Currently there may be discrepancies if this script is run on an
+;;; executable not in the current directory.
+
+(import (chicken format)
+	(chicken io)
+	(chicken port)
+	(chicken pretty-print)
+	(chicken process)
+	(chicken process-context)
+	(chicken string)
+	srfi-1
+	srfi-13)
+
+(define echo #f)
+
+(define substrings-to-ignore
+  '("linux-vdso.so"
+    "libc.so"
+    "libm.so"
+    "ld-linux-x86-64.so"))
+
+(define (shell format-string . args)
+  ;; Formats, echoes, and runs a shell command, returning the combined output.
+  ;; Args are automatically shell-escaped.
+  (let ((command (apply format format-string (map qs args))))
+    (if echo (print "$ " command))
+    (receive (stdout+stderr _ _) (process command)
+      (let ((output (with-input-from-port stdout+stderr
+		      (lambda ()
+			(read-string)))))
+	(if (eof-object? output)
+	    ""
+	    (begin
+	      (if echo (display output))
+	      output))))))
+
+(define (extract-library-paths path-to-exe)
+  (define (extract-from-line line)
+    (let ((tokens (string-split (substring line 1))))
+      (list (first tokens)
+	    (if (member "=>" tokens)
+		(list-ref tokens (- (length tokens) 2))
+		(first tokens)))))
+  (let ((output (shell "ldd ~A" path-to-exe)))
+    (map extract-from-line
+	 (string-split output "\n"))))
+
+(define (ignore? string)
+  (any (lambda (substr)
+	 (substring-index substr string))
+       substrings-to-ignore))
+
+(define (readlink path)
+  (string-chomp (shell "readlink -f ~A" path)))
+
+(define exe-path (first (command-line-arguments)))
+
+(define paths
+  (map (lambda (x)
+	 (list (first x)
+	       (readlink (second x))))
+       (filter (complement (compose ignore? first))
+	       (extract-library-paths exe-path))))
+
+(for-each (lambda (path-list)
+	    (display (shell "cp -nv ~A ~A"
+			    (second path-list)
+			    (first path-list))))
+	  paths)
+
+(display (apply shell
+		(string-append "du -bhc ~A "
+			       (string-join (map (constantly "~A") paths) " "))
+		exe-path
+		(map first paths)))
+
+(display (shell "patchelf --set-rpath '$ORIGIN' ~A" exe-path))

@@ -18,7 +18,10 @@ multiple languages.
 - `bash/wdname` - rename tmux window to basename of working directory
 - `bash/wri` - view formatted ri output in browser using markdown
 - `bash/xsync` - synchronize clipboard with primary selection using xclip
-- `chicken/benchmark` - run stats on
+- `chicken/bundle` - collect a dynamically linked executable's dependencies in
+  the working directory, and make the executable load its libraries from its
+  working directory
+- `chicken/r7rs-benchmark-stats` - run stats on
   <https://ecraven.github.io/r7rs-benchmarks/all.csv>
 - `luajit/randparty` - generate a random pokémon red and/or blue party
 - `python/automaster` - master and encode a set of audio files
