@@ -2,25 +2,31 @@
 #lang racket/base
 
 (require racket/list
-	 racket/sequence)
+	 racket/match
+	 racket/sequence
+	 threading)
 
 (define max-lines 400)
 (define min-char-variety 5)
-(define replacement-pairs '(("[\t ]+" . " ")
-			    ("^ " . "")
-			    (" $" . "")))
-
+(define replacement-pairs '(("[\t ]+" " ")
+			    ("^ " "")
+			    (" $" "")))
 (define (replace s)
-  (foldl (λ (pair s)
-	   (let ((pattern (car pair))
-		 (insert (cdr pair)))
-	     (regexp-replace* pattern s insert)))
+  (foldl (match-lambda**
+	   [((list pattern insert) s)
+	    (regexp-replace* pattern s insert)])
 	 s replacement-pairs))
 
 (define (varied s)
   (>= (length (remove-duplicates (string->list s)))
       min-char-variety))
 
-(let ((lines (sequence->list (in-lines))))
-  (for-each displayln (take (filter varied (map replace lines))
-			    max-lines)))
+(define (take* i lst)
+  (take lst i))
+
+(~>> (in-lines)
+     sequence->list
+     (filter varied)
+     (map replace)
+     (take* 400)
+     (for-each displayln))
