@@ -1,0 +1,30 @@
+#!/usr/bin/env -S csi -ss
+
+;; This script preprocesses text from stdin for use as a TIPP10 typing tutor
+;; lesson.
+
+(import (chicken io)
+	(chicken irregex)
+	srfi-1
+	srfi-14
+	utf8)
+
+(define max-lines 400)
+(define min-char-variety 5)
+(define replacements '(("[\t ]+" . " ")
+		       ("^ " . "")
+		       (" $" . "")))
+
+(define (main args)
+  (let* ((replace (lambda (s)
+		    (fold (lambda (pair s)
+			    (let ((pattern (car pair))
+				  (replacement (cdr pair)))
+			      (irregex-replace/all pattern s replacement)))
+			  s replacements)))
+	 (varied (lambda (s)
+		   (>= (length (char-set->list (string->char-set s)))
+		       min-char-variety))))
+    (for-each print (take (filter varied
+				  (map replace (read-lines)))
+			  max-lines))))
