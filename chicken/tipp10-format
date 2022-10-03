@@ -5,6 +5,7 @@
 
 (import (chicken io)
 	(chicken irregex)
+	(clojurian syntax)
 	srfi-1
 	srfi-14
 	utf8)
@@ -15,16 +16,23 @@
 		       ("^ " . "")
 		       (" $" . "")))
 
+(define (replace s)
+  (fold (lambda (pair s)
+	  (let ((pattern (car pair))
+		(insert (cdr pair)))
+	    (irregex-replace/all pattern s insert)))
+	s replacements))
+
+(define (varied s)
+  (>= (length (char-set->list (string->char-set s)))
+      min-char-variety))
+
+(define (take* n lst)
+  (take lst n))
+
 (define (main args)
-  (let* ((replace (lambda (s)
-		    (fold (lambda (pair s)
-			    (let ((pattern (car pair))
-				  (replacement (cdr pair)))
-			      (irregex-replace/all pattern s replacement)))
-			  s replacements)))
-	 (varied (lambda (s)
-		   (>= (length (char-set->list (string->char-set s)))
-		       min-char-variety))))
-    (for-each print (take (filter varied
-				  (map replace (read-lines)))
-			  max-lines))))
+  (->> (read-lines)
+       (map replace)
+       (filter varied)
+       (take* max-lines)
+       (for-each print)))
