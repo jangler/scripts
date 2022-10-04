@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import re
+import sys
+
+# This script preprocesses text from stdin for use as a TIPP10 typing tutor
+# lesson.
+
+max_lines = 400
+min_char_variety = 5
+replacements = {
+    '[\t ]+': ' ',
+    '^ ': '',
+    ' $': '',
+}
+
+def replace(s):
+    for k, v in replacements.items():
+        s = re.sub(k, v, s)
+    return s
+
+def varied(s):
+    return len(set(s)) >= min_char_variety
+
+lines = filter(varied,
+               map(replace, sys.stdin.readlines()))
+
+for line in list(lines)[:max_lines]:
+    print(line.strip())
