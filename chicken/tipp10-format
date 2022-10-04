@@ -27,12 +27,9 @@
   (>= (length (char-set->list (string->char-set s)))
       min-char-variety))
 
-(define (lseq-take* i lst)
-  (lseq-take lst i))
-
 (define (main args)
   (->> (generator->lseq read-line)
        (lseq-map replace)
        (lseq-filter varied)
-       (lseq-take* max-lines)
+       ((flip lseq-take) max-lines)
        (lseq-for-each print)))
