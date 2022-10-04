@@ -6,8 +6,8 @@
 (import (chicken io)
 	(chicken irregex)
 	(clojurian syntax)
-	srfi-1
 	srfi-14
+	srfi-127
 	utf8)
 
 (define max-lines 400)
@@ -17,22 +17,22 @@
 		       (" $" . "")))
 
 (define (replace s)
-  (fold (lambda (pair s)
-	  (let ((pattern (car pair))
-		(insert (cdr pair)))
-	    (irregex-replace/all pattern s insert)))
-	s replacements))
+  (foldl (lambda (s pair)
+	   (let ((pattern (car pair))
+		 (insert (cdr pair)))
+	     (irregex-replace/all pattern s insert)))
+	 s replacements))
 
 (define (varied s)
   (>= (length (char-set->list (string->char-set s)))
       min-char-variety))
 
-(define (take* n lst)
-  (take lst n))
+(define (lseq-take* i lst)
+  (lseq-take lst i))
 
 (define (main args)
-  (->> (read-lines)
-       (map replace)
-       (filter varied)
-       (take* max-lines)
-       (for-each print)))
+  (->> (generator->lseq read-line)
+       (lseq-map replace)
+       (lseq-filter varied)
+       (lseq-take* max-lines)
+       (lseq-for-each print)))
