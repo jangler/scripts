@@ -7,7 +7,7 @@
 	(chicken irregex)
 	(clojurian syntax)
 	srfi-14
-	srfi-127
+	srfi-158
 	utf8)
 
 (define max-lines 400)
@@ -28,8 +28,8 @@
       min-char-variety))
 
 (define (main args)
-  (->> (generator->lseq read-line)
-       (lseq-map replace)
-       (lseq-filter varied)
-       ((flip lseq-take) max-lines)
-       (lseq-for-each print)))
+  (->> read-line
+       (gmap replace)
+       (gfilter varied)
+       ((flip gtake) max-lines)
+       (generator-for-each print)))
