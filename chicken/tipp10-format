@@ -5,9 +5,9 @@
 
 (import (chicken io)
 	(chicken irregex)
-	(clojurian syntax)
 	srfi-14
 	srfi-158
+	srfi-197
 	utf8)
 
 (define max-lines 400)
@@ -28,8 +28,8 @@
       min-char-variety))
 
 (define (main args)
-  (->> read-line
-       (gmap replace)
-       (gfilter varied)
-       ((flip gtake) max-lines)
-       (generator-for-each print)))
+  (chain read-line
+	 (gmap replace _)
+	 (gfilter varied _)
+	 (gtake _ max-lines)
+	 (generator-for-each print _)))
