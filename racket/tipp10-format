@@ -6,7 +6,7 @@
 
 (require racket/list
 	 racket/match
-	 racket/sequence
+	 racket/stream
 	 threading)
 
 (define max-lines 400)
@@ -24,12 +24,8 @@
   (>= (length (remove-duplicates (string->list s)))
       min-char-variety))
 
-(define (take* i lst)
-  (take lst i))
-
-(~>> (in-lines)
-     sequence->list
-     (filter varied)
-     (map replace)
-     (take* 400)
-     (for-each displayln))
+(~>> (sequence->stream (in-lines))
+     (stream-filter varied)
+     (stream-map replace)
+     (stream-take _ max-lines)
+     (stream-for-each displayln))
