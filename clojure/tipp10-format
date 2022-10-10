@@ -1,0 +1,22 @@
+#!/usr/bin/env clojure
+
+;; This script preprocesses text from stdin for use as a TIPP10 typing tutor
+;; lesson.
+
+(def max-lines 400)
+(def min-char-variety 5)
+(def replacements {#"[\t ]+" " "
+                   #"^ " ""
+                   #" $" ""})
+
+(defn replace-patterns [s]
+  (reduce-kv clojure.string/replace s replacements))
+
+(defn varied [s]
+  (>= (count (set s)) min-char-variety))
+
+(->> (line-seq (java.io.BufferedReader. *in*))
+     (map replace-patterns)
+     (filter varied)
+     (take max-lines)
+     (run! println))
